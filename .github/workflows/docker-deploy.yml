@@ -1,14 +1,27 @@
-name: Docker Build and Push
+
+# Name of this GitHub Actions workflow.
+name: Semgrep
 
 on:
+  # Scan changed files in PRs (diff-aware scanning):
+  pull_request: {}
+  # Scan on-demand through GitHub Actions interface:
+  workflow_dispatch: {}
+  # Scan mainline branches and report all findings:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
+    branches: ["master", "main"]
+  
 jobs:
-  build:
+  semgrep:
+    # User definable name of this GitHub Actions job.
+    name: semgrep/ci 
+    # If you are self-hosting, change the following `runs-on` value: 
     runs-on: ubuntu-latest
+
+    container:
+      # A Docker image with Semgrep installed. Do not change this.
+      image: returntocorp/semgrep
+
     steps:
       -
         name: Checkout
@@ -22,6 +35,21 @@ jobs:
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+      
+     # Run semgrep default SAST and generate sarif report
+      - name: full semgrep scan
+        run: | 
+              semgrep \
+              --sarif --output semgrep-sast.sarif \
+              --metrics=off \
+              --config="p/default"
+# Upload report
+      - name: save report as pipeline artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: semgrep-sast.sarif
+          path: semgrep-sast.sarif
+  
       -
         name: Build and push
         uses: docker/build-push-action@v5
