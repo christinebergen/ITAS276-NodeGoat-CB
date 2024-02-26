@@ -1,85 +1,52 @@
-
- 
- # Name of this GitHub Actions workflow.
 name: Semgrep
 
 on:
-  # Scan changed files in PRs (diff-aware scanning):
   pull_request: {}
-  # Scan on-demand through GitHub Actions interface:
   workflow_dispatch: {}
-  # Scan mainline branches and report all findings:
   push:
     branches: ["master", "main"]
-  # Schedule the CI job (this method uses cron syntax):
   schedule:
-    - cron: '20 17 * * *' # Sets Semgrep to scan every day at 17:20 UTC.
-    # It is recommended to change the schedule to a random time.
+    - cron: '20 17 * * *'
 
 jobs:
   semgrep:
-    
     name: semgrep/ci 
-    
     runs-on: ubuntu-latest
-
     container:
-      
       image: semgrep/semgrep
-    
     if: (github.actor != 'dependabot[bot]')
-
     steps:
-      # Fetch project source with GitHub Actions Checkout.
       - uses: actions/checkout@v3
-      # Run the "semgrep ci" command on the command line of the docker image.
       - run: semgrep ci
-        
+
   SAST-Semgrep:
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - name: clone application source code
+        uses: actions/checkout@v3
+      - name: full semgrep scan
+        run: |
+          semgrep \
+          --sarif --output semgrep-sast.sarif \
+          --metrics=off \
+          --config="p/default"
+      - name: save report as pipeline artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: semgrep-sast.sarif
+          path: semgrep-sast.sarif
 
-        runs-on: ubuntu-latest
-        container:
-
-            image: returntocorp/semgrep
-
-        steps:   
-
-            # Checkout source for scanning
-
-            - name: clone application source code
-
-              uses: actions/checkout@v3
-
-            # Run semgrep default SAST and generate sarif report
-
-            - name: full semgrep scan
-
-              run: | 
-
-                    semgrep \
-
-                    --sarif --output semgrep-sast.sarif \
-
-                    --metrics=off \
-
-                    --config="p/default"
-
-            # Upload report
-
-            - name: save report as pipeline artifact
-
-              uses: actions/upload-artifact@v3
-
-              with:
-
-                name: semgrep-sast.sarif
-
-                path: semgrep-sast.sarif
-      -
-        name: Build and push
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
           tags: christinebergen/itas276-nodegoat-cb:latest
+
