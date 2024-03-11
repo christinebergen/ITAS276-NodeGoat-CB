@@ -1,0 +1,23 @@
+
+name: Build docker image and deploy to wmd docker servers
+on:
+    push:
+      branches: [ "master" ]
+    pull_request:
+      branches: [ "master" ]
+    
+jobs:
+    
+    deploy:
+        name: "Deploy to ITAS WMD server"
+        runs-on: wmd-dockerdev
+
+        steps:
+            -   name: Copy source code files
+                uses: actions/checkout@master
+
+            -   name: Test files are visibile
+                # Execute some shell commands on your server (this is the self-hosted instance)
+                run: |
+                    whoami
+                    ls-lah
