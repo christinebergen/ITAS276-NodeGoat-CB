@@ -11,6 +11,8 @@ jobs:
     deploy:
         name: "Deploy to ITAS WMD server"
         runs-on: itas276-christinebergen
+        env:
+            PORT: 40901
 
         steps:
             -   name: Copy source code files
