@@ -23,4 +23,5 @@ jobs:
                 run: |
                     whoami
                     ls -lah
+                    docker-compose build
                     docker-compose up -d
