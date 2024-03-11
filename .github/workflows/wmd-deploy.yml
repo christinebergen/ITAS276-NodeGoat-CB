@@ -10,7 +10,7 @@ jobs:
     
     deploy:
         name: "Deploy to ITAS WMD server"
-        runs-on: self-hosted
+        runs-on: itas276-christinebergen
 
         steps:
             -   name: Copy source code files
