@@ -20,7 +20,7 @@ jobs:
       - run: semgrep ci
 
   SAST-Semgrep:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     container:
       image: returntocorp/semgrep
     steps:
