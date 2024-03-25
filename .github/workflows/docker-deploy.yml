@@ -1,13 +1,10 @@
 name: Semgrep
 
 on:
-  pull_request: {}
-  workflow_dispatch: {}
+
   push:
     branches: ["donotrun"]
-  schedule:
-    - cron: '20 17 * * *'
-
+  
 jobs:
   semgrep:
     name: semgrep/ci 
