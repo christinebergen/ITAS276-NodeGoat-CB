@@ -28,7 +28,8 @@ jobs:
           command: test --sarif
           file: ./snyk.sarif
 
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v1
+      - name: save report as pipeline artifact
+        uses: actions/upload-artifact@v3
         with:
-          sarif_file: snyk-results.sarif
+          name: semgrep-sast.sarif
+          path: semgrep-sast.sarif
