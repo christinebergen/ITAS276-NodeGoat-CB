@@ -19,9 +19,11 @@ jobs:
       
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/docker@master
+        
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
+          image: christinebergen/itas276-nodegoat-cb:latest
           command: test --sarif
           file: ./snyk.sarif
 
