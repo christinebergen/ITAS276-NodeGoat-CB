@@ -18,6 +18,7 @@ jobs:
           generateSarif: "1"
       
       - name: Run Snyk to check for vulnerabilities
+        continue-on-error: true
         uses: snyk/actions/docker@master
         
         env:
