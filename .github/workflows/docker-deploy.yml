@@ -4,7 +4,7 @@ on:
   pull_request: {}
   workflow_dispatch: {}
   push:
-    branches: ["master", "main"]
+    branches: ["donotrun"]
   schedule:
     - cron: '20 17 * * *'
 
