@@ -82,6 +82,18 @@ jobs:
       runs-on: ubuntu-latest
       needs: [SCA-Snyk, SAST-Semgrep]
       steps:
+        - name: Download SCA-Snyk SARIF file
+          uses: actions/download-artifact@v2
+          with:
+            name: snyk-sca.sarif
+          
+        - name: Download SAST-Semgrep SARIF file
+          uses: actions/download-artifact@v2
+          with:
+            name: semgrep-sast.sarif
+
+      # Steps to upload SARIF files to a hosting service and obtain URLs will go here
+
         - name: Discord Notification - Jobs Completed
           uses: tsickert/discord-webhook@v5.3.0
           with:
@@ -89,5 +101,5 @@ jobs:
             username: ${{ github.repository }}
             embed-title: "Security Pipeline jobs have completed"
             embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            embed-description: "SCA-Snyk and SAST-Semgrep jobs have completed for ${{ github.repository }}. [Action details ${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+            embed-description: "SCA-Snyk and SAST-Semgrep jobs have completed. SARIF reports are available at [Snyk Report URL] and [Semgrep Report URL]."
             embed-author-name: ${{ github.actor }}
