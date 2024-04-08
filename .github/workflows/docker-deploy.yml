@@ -1,95 +1,43 @@
-name: Semgrep
+name: Assignment 1 DevSecOps standard security pipeline
 
 on:
-
   push:
-    branches: ["donotrun"]
-  
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
 jobs:
-  semgrep:
-    name: semgrep/ci 
+  SCA-Snyk:
     runs-on: ubuntu-latest
-    container:
-      image: semgrep/semgrep
-    if: (github.actor != 'dependabot[bot]')
     steps:
-      - uses: actions/checkout@v3
-      - run: semgrep ci
+      - uses: actions/checkout@master
+      - name: Run Snyk to check Docker image for vulnerabilities
+        continue-on-error: true
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: christinebergen/itas276-nodegoat-cb:latest
+          args: --file=Dockerfile
+          sarif: true
+      - name: list files    
+        run: |
+          ls -lah
+      - name: save report as pipeline artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: snyk-sca.sarif
+          path: snyk.sarif
 
   SAST-Semgrep:
-    runs-on: name: Assignment 1 DevSecOps standard security pipeline
-
-on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
-
-jobs:
-    SCA-Snyk:
-        runs-on: ubuntu-latest
-        
-        steps:
-        - uses: actions/checkout@master
-        - name: Run Snyk to check Docker image for vulnerabilities
-          # Snyk can be used to break the build when it detects vulnerabilities.
-          # In this case we want to upload the issues to GitHub Code Scanning
-          continue-on-error: true
-          uses: snyk/actions/docker@master
-          env:
-            # In order to use the Snyk Action you will need to have a Snyk API token.
-            # See https://docs.snyk.io/integrations/ci-cd-integrations/github-actions-integration#getting-your-snyk-token
-            # or you can sign up for free at https://snyk.io/login
-
-            SNYK_TOKEN: ${{secrets.SNYK_TOKEN}}
-
-          with:
-            image: christinebergen/itas276-nodegoat-cb:latest
-            args: --file=Dockerfile
-            sarif: true
-        - name: list files    
-          run: |
-                    ls -lah
-           
-
-        - name: save report as pipeline artifact
-          uses: actions/upload-artifact@v3
-          with:
-            name: snyk-sca.sarif
-            path: snyk.sarif
-
-    SAST-Semgrep:
-        runs-on: ubuntu-latest
-      
-        container:
-            image: returntocorp/semgrep
-
-        steps:   
-            # Checkout source for scanning
-            - name: clone application source code
-              uses: actions/checkout@v3
-
-            # Run semgrep default SAST and generate sarif report
-            - name: full semgrep scan
-              run: | 
-                    semgrep \
-                    --sarif --output semgrep-sast.sarif \
-                    --metrics=off \
-                    --config="p/default"
-    
-            # Upload report
-            - name: save report as pipeline artifact
-              uses: actions/upload-artifact@v3
-              with:
-                name: semgrep-sast.sarif
-                path: semgrep-sast.sarif
+    runs-on: ubuntu-latest
     container:
       image: returntocorp/semgrep
-    steps:
+    steps:   
       - name: clone application source code
         uses: actions/checkout@v3
       - name: full semgrep scan
-        run: |
+        run: | 
           semgrep \
           --sarif --output semgrep-sast.sarif \
           --metrics=off \
@@ -104,7 +52,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v1
         with:
