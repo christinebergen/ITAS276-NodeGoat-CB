@@ -101,5 +101,5 @@ jobs:
             username: ${{ github.repository }}
             embed-title: "Security Pipeline jobs have completed"
             embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            embed-description: "SCA-Snyk and SAST-Semgrep jobs have completed. SARIF reports are available at [semgrep-sast.sarif](https://github.com/$%7B%7B github.repository }}/actions/runs/${{ github.run_id }})."
+            embed-description: "SCA-Snyk and SAST-Semgrep jobs have completed. Download SARIF file for SAST-Semgrep: [semgrep-sast.sarif](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
             embed-author-name: ${{ github.actor }}
