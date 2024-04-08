@@ -7,9 +7,22 @@ on:
     branches: [ "master" ]
 
 jobs:
+    Start-Notification:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Discord Notification - Jobs Starting
+          uses: tsickert/discord-webhook@v5.3.0
+          with:
+            webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+            username: ${{ github.repository }}
+            embed-title: "Security Pipeline jobs are starting..."
+            embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            embed-description: "SCA-Snyk and SAST-Semgrep jobs are starting for ${{ github.repository }}."
+            embed-author-name: ${{ github.actor }}
+
     SCA-Snyk:
         runs-on: ubuntu-latest
-        
+        needs: [Start-Notification]
         steps:
         - uses: actions/checkout@master
         - name: Run Snyk to check Docker image for vulnerabilities
@@ -41,7 +54,7 @@ jobs:
 
     SAST-Semgrep:
         runs-on: ubuntu-latest
-      
+        needs: [Start-Notification]
         container:
             image: returntocorp/semgrep
 
