@@ -10,7 +10,7 @@ jobs:
     
     deploy:
         name: "Deploy to ITAS WMD server"
-        runs-on: itas276-christinebergen
+        runs-on: ubuntu-latest
         env:
             PORT: 40902
 
