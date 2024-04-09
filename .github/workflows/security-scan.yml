@@ -1,4 +1,4 @@
-name: Assignment 1 DevSecOps standard security pipeline
+name: Assignment 3 DevSecOps
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
     branches: [ "master" ]
 
 jobs:
+    # Initial notification to Discord Channel that jobs are starting
     Start-Notification:
       runs-on: ubuntu-latest
       steps:
@@ -19,10 +20,10 @@ jobs:
             embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             embed-description: "Security Scan jobs starting ${{ github.repository }}."
             embed-author-name: ${{ github.actor }}
-
+            
+    # Run SCA-SNYK vulnerability scan
     SCA-Snyk:
-        runs-on: ubuntu-latest
-        
+        runs-on: ubuntu-latest 
         steps:
         - uses: actions/checkout@master
         - name: Run Snyk to check Docker image for vulnerabilities
@@ -45,13 +46,12 @@ jobs:
           run: |
                     ls -lah
            
-
         - name: save report as pipeline artifact
           uses: actions/upload-artifact@v3
           with:
             name: snyk-sca.sarif
             path: snyk.sarif
-            
+        # Discord notification to channel that SNYK job completed successfully    
         - name: Discord Notification - Jobs Starting
           uses: tsickert/discord-webhook@v5.3.0
           with:
@@ -61,7 +61,8 @@ jobs:
             embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             embed-description: "SCA-Snyk job complete. Artifacts available: [snyk-sca.sarif](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
             embed-author-name: ${{ github.actor }}
-
+            
+    # Run SAST-SEMGREP security scan
     SAST-Semgrep:
         runs-on: ubuntu-latest
         
@@ -81,7 +82,7 @@ jobs:
                     --metrics=off \
                     --config="p/default"
     
-            # Upload report
+            # Upload report to specified Discord channel
             - name: save report as pipeline artifact
               uses: actions/upload-artifact@v3
               with:
@@ -92,11 +93,12 @@ jobs:
               with:
                 webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
                 username: ${{ github.repository }}
-                embed-title: "SCA-SNYK security pipeline job starting."
+                embed-title: "SEMGREP-SAST security pipeline job starting."
                 embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-                embed-description: "SEMGREP-SAST jobs are starting. Artifacts available: [semgrep-sast.sarif](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+                embed-description: "SEMGREP-SAST job complete. Artifacts available: [semgrep-sast.sarif](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
                 embed-author-name: ${{ github.actor }}
                 
+    # Upload report to specified Discord channel when both jobs complete successfully.            
     Discord-Notification:
       runs-on: ubuntu-latest
       needs: [SCA-Snyk, SAST-Semgrep]
@@ -112,7 +114,6 @@ jobs:
             name: semgrep-sast.sarif
 
       # Steps to upload SARIF files to a hosting service and obtain URLs will go here
-
         - name: Discord Notification - Jobs Completed
           uses: tsickert/discord-webhook@v5.3.0
           with:
