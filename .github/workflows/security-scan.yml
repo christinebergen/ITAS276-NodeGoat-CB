@@ -17,12 +17,12 @@ jobs:
             username: ${{ github.repository }}
             embed-title: "Security Pipeline jobs are starting..."
             embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            embed-description: "SCA-Snyk and SAST-Semgrep jobs are starting for ${{ github.repository }}."
+            embed-description: "Security Scan jobs starting ${{ github.repository }}."
             embed-author-name: ${{ github.actor }}
 
     SCA-Snyk:
         runs-on: ubuntu-latest
-        needs: [Start-Notification]
+        
         steps:
         - uses: actions/checkout@master
         - name: Run Snyk to check Docker image for vulnerabilities
@@ -51,10 +51,20 @@ jobs:
           with:
             name: snyk-sca.sarif
             path: snyk.sarif
+            
+        - name: Discord Notification - Jobs Starting
+          uses: tsickert/discord-webhook@v5.3.0
+          with:
+            webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+            username: ${{ github.repository }}
+            embed-title: "SCA-SNYK security pipeline job starting."
+            embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            embed-description: "SCA-Snyk job complete. Artifacts available: [snyk-sca.sarif](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+            embed-author-name: ${{ github.actor }}
 
     SAST-Semgrep:
         runs-on: ubuntu-latest
-        needs: [Start-Notification]
+        
         container:
             image: returntocorp/semgrep
 
@@ -77,6 +87,15 @@ jobs:
               with:
                 name: semgrep-sast.sarif
                 path: semgrep-sast.sarif
+            - name: Discord Notification - Jobs Starting
+              uses: tsickert/discord-webhook@v5.3.0
+              with:
+                webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+                username: ${{ github.repository }}
+                embed-title: "SCA-SNYK security pipeline job starting."
+                embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                embed-description: "SEMGREP-SAST jobs are starting. Artifacts available: [semgrep-sast.sarif](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+                embed-author-name: ${{ github.actor }}
                 
     Discord-Notification:
       runs-on: ubuntu-latest
@@ -99,7 +118,7 @@ jobs:
           with:
             webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
             username: ${{ github.repository }}
-            embed-title: "Security Pipeline jobs have completed"
+            embed-title: "All Security Pipeline jobs have completed"
             embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            embed-description: "SCA-Snyk and SAST-Semgrep jobs have completed. Download SARIF file for SAST-Semgrep: [semgrep-sast.sarif](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+            embed-description: "SCA-Snyk and SAST-Semgrep jobs have completed. Download SARIF file: [SERIF file](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
             embed-author-name: ${{ github.actor }}
