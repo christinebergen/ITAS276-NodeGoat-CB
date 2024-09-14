@@ -1,125 +1,125 @@
-name: Assignment 3 DevSecOps
+#name: Assignment 3 DevSecOps
 
-on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+#on:
+#  push:
+#    branches: [ "master" ]
+#  pull_request:
+#    branches: [ "master" ]
 
-jobs:
-    # Initial notification to Discord Channel that jobs are starting
-    Start-Notification:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Discord Notification - Jobs Starting
-          uses: tsickert/discord-webhook@v5.3.0
-          with:
-            webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-            username: ${{ github.repository }}
-            embed-title: "Security Pipeline jobs are starting..."
-            embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            embed-description: "Security Scan jobs starting ${{ github.repository }}."
-            embed-author-name: ${{ github.actor }}
+#jobs:
+#    # Initial notification to Discord Channel that jobs are starting
+#    Start-Notification:
+#      runs-on: ubuntu-latest
+#      steps:
+#        - name: Discord Notification - Jobs Starting
+#          uses: tsickert/discord-webhook@v5.3.0
+#          with:
+#            webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+#            username: ${{ github.repository }}
+#            embed-title: "Security Pipeline jobs are starting..."
+#            embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+#            embed-description: "Security Scan jobs starting ${{ github.repository }}."
+#            embed-author-name: ${{ github.actor }}
             
-    # Run SCA-SNYK vulnerability scan
-    SCA-Snyk:
-        runs-on: ubuntu-latest 
-        steps:
-        - uses: actions/checkout@master
-        - name: Run Snyk to check Docker image for vulnerabilities
-          # Snyk can be used to break the build when it detects vulnerabilities.
-          # In this case we want to upload the issues to GitHub Code Scanning
-          continue-on-error: true
-          uses: snyk/actions/docker@master
-          env:
+#    # Run SCA-SNYK vulnerability scan
+#    SCA-Snyk:
+#        runs-on: ubuntu-latest 
+#        steps:
+#        - uses: actions/checkout@master
+#        - name: Run Snyk to check Docker image for vulnerabilities
+#          # Snyk can be used to break the build when it detects vulnerabilities.
+#          # In this case we want to upload the issues to GitHub Code Scanning
+#          continue-on-error: true
+#          uses: snyk/actions/docker@master
+#          env:
             # In order to use the Snyk Action you will need to have a Snyk API token.
             # See https://docs.snyk.io/integrations/ci-cd-integrations/github-actions-integration#getting-your-snyk-token
             # or you can sign up for free at https://snyk.io/login
 
-            SNYK_TOKEN: ${{secrets.SNYK_TOKEN}}
+#            SNYK_TOKEN: ${{secrets.SNYK_TOKEN}}
 
-          with:
-            image: christinebergen/itas276-nodegoat-cb:latest
-            args: --file=Dockerfile
-            sarif: true
-        - name: list files    
-          run: |
+#         with:
+#            image: christinebergen/itas276-nodegoat-cb:latest
+#            args: --file=Dockerfile
+#            sarif: true
+#        - name: list files    
+#          run: |
                     ls -lah
            
-        - name: save report as pipeline artifact
-          uses: actions/upload-artifact@v3
-          with:
-            name: snyk-sca.sarif
-            path: snyk.sarif
+#        - name: save report as pipeline artifact
+#          uses: actions/upload-artifact@v3
+#          with:
+#            name: snyk-sca.sarif
+#            path: snyk.sarif
         # Discord notification to channel that SNYK job completed successfully    
-        - name: Discord Notification - Jobs Starting
-          uses: tsickert/discord-webhook@v5.3.0
-          with:
-            webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-            username: ${{ github.repository }}
-            embed-title: "SCA-SNYK security pipeline job starting."
-            embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            embed-description: "SCA-Snyk job complete. Artifacts available: [snyk-sca.sarif](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
-            embed-author-name: ${{ github.actor }}
+#        - name: Discord Notification - Jobs Starting
+#          uses: tsickert/discord-webhook@v5.3.0
+#          with:
+#            webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+#            username: ${{ github.repository }}
+#            embed-title: "SCA-SNYK security pipeline job starting."
+#            embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+#            embed-description: "SCA-Snyk job complete. Artifacts available: [snyk-sca.sarif](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+#            embed-author-name: ${{ github.actor }}
             
     # Run SAST-SEMGREP security scan
-    SAST-Semgrep:
-        runs-on: ubuntu-latest
+#    SAST-Semgrep:
+#        runs-on: ubuntu-latest
         
-        container:
-            image: returntocorp/semgrep
+#        container:
+#            image: returntocorp/semgrep
 
-        steps:   
+#        steps:   
             # Checkout source for scanning
-            - name: clone application source code
-              uses: actions/checkout@v3
+#            - name: clone application source code
+#              uses: actions/checkout@v3
 
             # Run semgrep default SAST and generate sarif report
-            - name: full semgrep scan
-              run: | 
+#            - name: full semgrep scan
+#              run: | 
                     semgrep \
                     --sarif --output semgrep-sast.sarif \
                     --metrics=off \
                     --config="p/default"
     
             # Upload report to specified Discord channel
-            - name: save report as pipeline artifact
-              uses: actions/upload-artifact@v3
-              with:
-                name: semgrep-sast.sarif
-                path: semgrep-sast.sarif
-            - name: Discord Notification - Jobs Starting
-              uses: tsickert/discord-webhook@v5.3.0
-              with:
-                webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-                username: ${{ github.repository }}
-                embed-title: "SEMGREP-SAST security pipeline job starting."
-                embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-                embed-description: "SEMGREP-SAST job complete. Artifacts available: [semgrep-sast.sarif](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
-                embed-author-name: ${{ github.actor }}
+#            - name: save report as pipeline artifact
+#              uses: actions/upload-artifact@v3
+#              with:
+#                name: semgrep-sast.sarif
+#                path: semgrep-sast.sarif
+#            - name: Discord Notification - Jobs Starting
+#              uses: tsickert/discord-webhook@v5.3.0
+#              with:
+#                webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+#                username: ${{ github.repository }}
+#                embed-title: "SEMGREP-SAST security pipeline job starting."
+#                embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+#                embed-description: "SEMGREP-SAST job complete. Artifacts available: [semgrep-sast.sarif](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+#                embed-author-name: ${{ github.actor }}
                 
     # Upload report to specified Discord channel when both jobs complete successfully.            
-    Discord-Notification:
-      runs-on: ubuntu-latest
-      needs: [SCA-Snyk, SAST-Semgrep]
-      steps:
-        - name: Download SCA-Snyk SARIF file
-          uses: actions/download-artifact@v2
-          with:
-            name: snyk-sca.sarif
+#    Discord-Notification:
+#      runs-on: ubuntu-latest
+#      needs: [SCA-Snyk, SAST-Semgrep]
+#      steps:
+#        - name: Download SCA-Snyk SARIF file
+#          uses: actions/download-artifact@v2
+#          with:
+#            name: snyk-sca.sarif
           
-        - name: Download SAST-Semgrep SARIF file
-          uses: actions/download-artifact@v2
-          with:
-            name: semgrep-sast.sarif
+#        - name: Download SAST-Semgrep SARIF file
+#          uses: actions/download-artifact@v2
+#          with:
+#            name: semgrep-sast.sarif
 
       # Steps to upload SARIF files to a hosting service and obtain URLs will go here
-        - name: Discord Notification - Jobs Completed
-          uses: tsickert/discord-webhook@v5.3.0
-          with:
-            webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-            username: ${{ github.repository }}
-            embed-title: "All Security Pipeline jobs have completed"
-            embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            embed-description: "SCA-Snyk and SAST-Semgrep jobs have completed. Download SARIF file: [SERIF file](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
-            embed-author-name: ${{ github.actor }}
+#        - name: Discord Notification - Jobs Completed
+#          uses: tsickert/discord-webhook@v5.3.0
+#          with:
+#            webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+#            username: ${{ github.repository }}
+#            embed-title: "All Security Pipeline jobs have completed"
+#            embed-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+#            embed-description: "SCA-Snyk and SAST-Semgrep jobs have completed. Download SARIF file: [SERIF file](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+#            embed-author-name: ${{ github.actor }}
