@@ -1,67 +1,67 @@
-name: Assignment 1 DevSecOps standard security pipeline
+#name: Assignment 1 DevSecOps standard security pipeline
 
-on:
-  push:
-    branches: ["master"]
-  pull_request:
-    branches: ["master"]
+#on:
+#  push:
+#    branches: ["master"]
+#  pull_request:
+#    branches: ["master"]
 
-jobs:
-  SCA-Snyk:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: Run Snyk to check Docker image for vulnerabilities
-        continue-on-error: true
-        uses: snyk/actions/docker@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          image: christinebergen/itas276-nodegoat-cb:latest
-          args: --file=Dockerfile
-          sarif: true
-      - name: list files    
-        run: |
-          ls -lah
-      - name: save report as pipeline artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: snyk-sca.sarif
-          path: snyk.sarif
+#jobs:
+#  SCA-Snyk:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@master
+#      - name: Run Snyk to check Docker image for vulnerabilities
+#        continue-on-error: true
+#        uses: snyk/actions/docker@master
+#        env:
+#          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+#        with:
+#          image: christinebergen/itas276-nodegoat-cb:latest
+#          args: --file=Dockerfile
+#          sarif: true
+#      - name: list files    
+#        run: |
+#          ls -lah
+#      - name: save report as pipeline artifact
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: snyk-sca.sarif
+#          path: snyk.sarif
 
-  SAST-Semgrep:
-    runs-on: ubuntu-latest
-    container:
-      image: returntocorp/semgrep
-    steps:   
-      - name: clone application source code
-        uses: actions/checkout@v3
-      - name: full semgrep scan
-        run: | 
-          semgrep \
-          --sarif --output semgrep-sast.sarif \
-          --metrics=off \
-          --config="p/default"
-      - name: save report as pipeline artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: semgrep-sast.sarif
-          path: semgrep-sast.sarif
+#  SAST-Semgrep:
+#    runs-on: ubuntu-latest
+#    container:
+#      image: returntocorp/semgrep
+#    steps:   
+#      - name: clone application source code
+#        uses: actions/checkout@v3
+#      - name: full semgrep scan
+#        run: | 
+#          semgrep \
+#          --sarif --output semgrep-sast.sarif \
+#          --metrics=off \
+#          --config="p/default"
+#      - name: save report as pipeline artifact
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: semgrep-sast.sarif
+#          path: semgrep-sast.sarif
 
-  build_and_push:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: christinebergen/itas276-nodegoat-cb:latest
+#  build_and_push:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Log in to Docker Hub
+#        uses: docker/login-action@v1
+#        with:
+#          username: ${{ secrets.DOCKERHUB_USERNAME }}
+#          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+#      - name: Build and push
+#        uses: docker/build-push-action@v5
+#        with:
+#          context: .
+#          file: ./Dockerfile
+#          push: true
+#          tags: christinebergen/itas276-nodegoat-cb:latest
 
